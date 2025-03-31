@@ -218,7 +218,7 @@ const MeetingSection: React.FC<MeetingSectionProps> = ({ leadId }) => {
                     Status
                   </label>
                   <Select 
-                    value={meeting.status || ""} 
+                    value={meeting.status || "none"} 
                     onValueChange={(value) => handleUpdateMeetingStatus(meeting.id, value)}
                   >
                     <SelectTrigger className="w-full text-sm py-1 h-8">
@@ -228,7 +228,7 @@ const MeetingSection: React.FC<MeetingSectionProps> = ({ leadId }) => {
                       {getMeetingStatusOptions(meeting.type).map((status) => (
                         <SelectItem key={status} value={status}>{status}</SelectItem>
                       ))}
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for LeadBridge
+				lead: {
+					hot: '#EF4444',
+					new: '#10B981',
+					cold: '#6B7280',
 				}
 			},
 			borderRadius: {

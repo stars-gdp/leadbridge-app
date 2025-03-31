@@ -55,13 +55,16 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
     }
   };
 
+  // Make sure meetings exist before trying to find the latest one
+  const meetings = lead.meetings || [];
+  
   // Get the latest meeting if any exists
-  const latestMeeting = lead.meetings && lead.meetings.length > 0 
-    ? lead.meetings.reduce((latest, meeting) => {
+  const latestMeeting = meetings.length > 0 
+    ? meetings.reduce((latest, meeting) => {
         if (!latest.date) return meeting;
         if (!meeting.date) return latest;
         return new Date(meeting.date) > new Date(latest.date) ? meeting : latest;
-      }, lead.meetings[0])
+      }, meetings[0])
     : null;
 
   return (
@@ -97,9 +100,9 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
           <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusBadge(lead.status)}`}>
             {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
           </span>
-          {lead.meetings.length > 0 && (
+          {meetings.length > 0 && (
             <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
-              {lead.meetings.length} {lead.meetings.length === 1 ? "meeting" : "meetings"}
+              {meetings.length} {meetings.length === 1 ? "meeting" : "meetings"}
             </span>
           )}
         </div>

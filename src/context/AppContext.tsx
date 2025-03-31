@@ -6,6 +6,22 @@ export type LeadTag = "hot" | "new" | "cold";
 
 export type LeadStatus = "contacted" | "qualified" | "negotiation" | "closed" | "lost";
 
+export type MeetingType = "BOM" | "BIT" | "WG 1" | "PT" | "WG 2" | "WG 3";
+
+export type MeetingStatus = 
+  | "BOM" | "Show" | "Not Interested"       // BOM statuses
+  | "BIT"                                   // BIT statuses
+  | "PT"                                    // PT statuses
+  | "code" | "WG 1" | "WG 2" | "WG 3";      // WG statuses
+
+export interface Meeting {
+  id: string;
+  type: MeetingType;
+  status: MeetingStatus | "";
+  date: string | null;
+  leadId: string;
+}
+
 export interface Lead {
   id: string;
   name: string;
@@ -13,8 +29,9 @@ export interface Lead {
   tag: LeadTag;
   status: LeadStatus;
   lastContactDate: string;
-  dateAdded: string; // Added dateAdded field
+  dateAdded: string;
   notes: string;
+  meetings: Meeting[];
 }
 
 export interface Task {
@@ -31,7 +48,7 @@ interface AppContextType {
   selectedLeadId: string | null;
   webViewSession: boolean;
   vpnEnabled: boolean;
-  addLead: (lead: Omit<Lead, "id">) => void;
+  addLead: (lead: Omit<Lead, "id" | "meetings">) => void;
   updateLead: (id: string, lead: Partial<Lead>) => void;
   selectLead: (id: string | null) => void;
   addTask: (task: Omit<Task, "id">) => void;
@@ -41,6 +58,10 @@ interface AppContextType {
   clearWebViewSession: () => void;
   getLead: (id: string) => Lead | undefined;
   getLeadTasks: (leadId: string) => Task[];
+  addMeeting: (meeting: Omit<Meeting, "id">) => void;
+  updateMeeting: (id: string, meeting: Partial<Meeting>) => void;
+  deleteMeeting: (id: string) => void;
+  getMeetingsByLead: (leadId: string) => Meeting[];
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -55,7 +76,23 @@ const sampleLeads: Lead[] = [
     status: "qualified",
     lastContactDate: "2023-09-15",
     dateAdded: "2023-09-01",
-    notes: "Interested in premium package. Follow up next week."
+    notes: "Interested in premium package. Follow up next week.",
+    meetings: [
+      {
+        id: "m1",
+        type: "BOM",
+        status: "Show",
+        date: "2023-09-10",
+        leadId: "1"
+      },
+      {
+        id: "m2",
+        type: "BIT",
+        status: "BIT",
+        date: "2023-09-20",
+        leadId: "1"
+      }
+    ]
   },
   {
     id: "2",
@@ -65,7 +102,8 @@ const sampleLeads: Lead[] = [
     status: "contacted",
     lastContactDate: "2023-09-18",
     dateAdded: "2023-09-10",
-    notes: "First contact made. Scheduled intro call for next Monday."
+    notes: "First contact made. Scheduled intro call for next Monday.",
+    meetings: []
   },
   {
     id: "3",
@@ -75,7 +113,8 @@ const sampleLeads: Lead[] = [
     status: "lost",
     lastContactDate: "2023-08-30",
     dateAdded: "2023-08-15",
-    notes: "No response after multiple follow-ups."
+    notes: "No response after multiple follow-ups.",
+    meetings: []
   },
   {
     id: "4",
@@ -85,7 +124,16 @@ const sampleLeads: Lead[] = [
     status: "negotiation",
     lastContactDate: "2023-09-17",
     dateAdded: "2023-09-05",
-    notes: "Discussing contract details. Needs pricing options."
+    notes: "Discussing contract details. Needs pricing options.",
+    meetings: [
+      {
+        id: "m3",
+        type: "BOM",
+        status: "BOM",
+        date: "2023-09-15",
+        leadId: "4"
+      }
+    ]
   },
   {
     id: "5",
@@ -95,7 +143,8 @@ const sampleLeads: Lead[] = [
     status: "contacted",
     lastContactDate: "2023-09-16",
     dateAdded: "2023-09-12",
-    notes: "Responded positively to initial outreach."
+    notes: "Responded positively to initial outreach.",
+    meetings: []
   }
 ];
 
@@ -155,11 +204,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('vpnEnabled', JSON.stringify(vpnEnabled));
   }, [leads, tasks, vpnEnabled]);
 
-  const addLead = (lead: Omit<Lead, "id">) => {
+  const addLead = (lead: Omit<Lead, "id" | "meetings">) => {
     const newLead = {
       ...lead,
       id: Date.now().toString(),
-      dateAdded: new Date().toISOString().split('T')[0] // Set current date as dateAdded
+      dateAdded: new Date().toISOString().split('T')[0], // Set current date as dateAdded
+      meetings: []
     };
     setLeads([...leads, newLead]);
   };
@@ -218,6 +268,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return tasks.filter(task => task.leadId === leadId);
   };
 
+  // Meeting management functions
+  const addMeeting = (meeting: Omit<Meeting, "id">) => {
+    const newMeeting = {
+      ...meeting,
+      id: Date.now().toString()
+    };
+    
+    setLeads(leads.map(lead => {
+      if (lead.id === meeting.leadId) {
+        return {
+          ...lead,
+          meetings: [...lead.meetings, newMeeting]
+        };
+      }
+      return lead;
+    }));
+  };
+
+  const updateMeeting = (id: string, updatedFields: Partial<Meeting>) => {
+    setLeads(leads.map(lead => {
+      if (lead.meetings.some(meeting => meeting.id === id)) {
+        return {
+          ...lead,
+          meetings: lead.meetings.map(meeting => 
+            meeting.id === id ? { ...meeting, ...updatedFields } : meeting
+          )
+        };
+      }
+      return lead;
+    }));
+  };
+
+  const deleteMeeting = (id: string) => {
+    setLeads(leads.map(lead => {
+      if (lead.meetings.some(meeting => meeting.id === id)) {
+        return {
+          ...lead,
+          meetings: lead.meetings.filter(meeting => meeting.id !== id)
+        };
+      }
+      return lead;
+    }));
+  };
+
+  const getMeetingsByLead = (leadId: string) => {
+    const lead = leads.find(lead => lead.id === leadId);
+    return lead ? lead.meetings : [];
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -235,7 +334,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleVpn,
         clearWebViewSession,
         getLead,
-        getLeadTasks
+        getLeadTasks,
+        addMeeting,
+        updateMeeting,
+        deleteMeeting,
+        getMeetingsByLead
       }}
     >
       {children}

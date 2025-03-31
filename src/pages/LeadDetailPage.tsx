@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAppContext } from "@/context/AppContext";
+import { useAppContext, LeadStatus } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -14,6 +14,7 @@ import {
 import { ChevronLeft, MessageCircle, Calendar, Trash } from "lucide-react";
 import { format } from "date-fns";
 import TaskItem from "@/components/TaskItem";
+import MeetingSection from "@/components/MeetingSection";
 
 const LeadDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +23,7 @@ const LeadDetailPage: React.FC = () => {
   
   const [lead, setLead] = useState(getLead(id || ""));
   const [notes, setNotes] = useState(lead?.notes || "");
-  const [status, setStatus] = useState(lead?.status || "contacted");
+  const [status, setStatus] = useState<LeadStatus>(lead?.status || "contacted");
   const tasks = getLeadTasks(id || "");
 
   useEffect(() => {
@@ -107,7 +108,10 @@ const LeadDetailPage: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Status
           </label>
-          <Select value={status} onValueChange={setStatus}>
+          <Select 
+            value={status} 
+            onValueChange={(value: string) => setStatus(value as LeadStatus)}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
@@ -150,6 +154,9 @@ const LeadDetailPage: React.FC = () => {
           </Button>
         </div>
       </div>
+      
+      {/* Meetings Section */}
+      {id && <MeetingSection leadId={id} />}
       
       {/* Related Tasks */}
       <div className="mb-4">

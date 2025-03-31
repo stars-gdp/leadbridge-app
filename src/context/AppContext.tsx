@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 // Define types
@@ -6,13 +5,13 @@ export type LeadTag = "hot" | "new" | "cold";
 
 export type LeadStatus = "contacted" | "qualified" | "negotiation" | "closed" | "lost";
 
-export type MeetingType = "BOM" | "BIT" | "WG 1" | "PT" | "WG 2" | "WG 3";
+export type MeetingType = "BOM" | "BIT" | "PT" | "WG";
 
 export type MeetingStatus = 
   | "BOM" | "Show" | "Not Interested"       // BOM statuses
   | "BIT"                                   // BIT statuses
   | "PT"                                    // PT statuses
-  | "code" | "WG 1" | "WG 2" | "WG 3";      // WG statuses
+  | "code" | "WG 1" | "WG 2" | "WG 3" | "none";      // WG statuses
 
 export interface Meeting {
   id: string;

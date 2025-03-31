@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Meeting, MeetingType, MeetingStatus, useAppContext } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
@@ -37,10 +36,8 @@ const MeetingSection: React.FC<MeetingSectionProps> = ({ leadId }) => {
         return ["BIT", "Show", "Not Interested"];
       case "PT":
         return ["PT", "Show", "Not Interested"];
-      case "WG 1":
-      case "WG 2":
-      case "WG 3":
-        return ["code", "WG 1", "WG 2", "WG 3"];
+      case "WG":
+        return ["code", "WG 1", "WG 2", "WG 3", "Not Interested"];
       default:
         return ["Show", "Not Interested"];
     }
@@ -97,9 +94,7 @@ const MeetingSection: React.FC<MeetingSectionProps> = ({ leadId }) => {
       "BOM": 1,
       "BIT": 2,
       "PT": 3,
-      "WG 1": 4,
-      "WG 2": 5,
-      "WG 3": 6
+      "WG": 4
     };
     
     return typePriority[a.type] - typePriority[b.type];
@@ -151,10 +146,8 @@ const MeetingSection: React.FC<MeetingSectionProps> = ({ leadId }) => {
                 <SelectContent>
                   <SelectItem value="BOM">BOM (First Meeting)</SelectItem>
                   <SelectItem value="BIT">BIT (Second Meeting)</SelectItem>
-                  <SelectItem value="WG 1">WG 1 (Third Meeting)</SelectItem>
-                  <SelectItem value="PT">PT (Fourth Meeting)</SelectItem>
-                  <SelectItem value="WG 2">WG 2</SelectItem>
-                  <SelectItem value="WG 3">WG 3</SelectItem>
+                  <SelectItem value="PT">PT (Third Meeting)</SelectItem>
+                  <SelectItem value="WG">WG (Workshop)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

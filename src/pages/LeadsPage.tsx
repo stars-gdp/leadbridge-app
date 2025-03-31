@@ -4,7 +4,7 @@ import { useAppContext } from "@/context/AppContext";
 import LeadCard from "@/components/LeadCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Filter } from "lucide-react";
+import { Search, Plus, Filter, ArrowDownAZ, ArrowUpAZ, Calendar } from "lucide-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -15,12 +15,18 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
+type SortDirection = "asc" | "desc";
+type SortField = "name" | "dateAdded";
+
 const LeadsPage: React.FC = () => {
   const { leads } = useAppContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField>("dateAdded");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
+  // Filter leads based on search query, tag, and status
   const filteredLeads = leads.filter(lead => {
     // Search by name or phone
     const matchesSearch = 
@@ -36,9 +42,36 @@ const LeadsPage: React.FC = () => {
     return matchesSearch && matchesTag && matchesStatus;
   });
 
+  // Sort leads based on sort field and direction
+  const sortedLeads = [...filteredLeads].sort((a, b) => {
+    if (sortField === "name") {
+      return sortDirection === "asc" 
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name);
+    } else {
+      // Sort by dateAdded
+      const dateA = new Date(a.dateAdded).getTime();
+      const dateB = new Date(b.dateAdded).getTime();
+      return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
+    }
+  });
+
   const handleClearFilters = () => {
     setFilterTag(null);
     setFilterStatus(null);
+  };
+
+  const toggleSortDirection = () => {
+    setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      toggleSortDirection();
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
   };
 
   return (
@@ -62,19 +95,47 @@ const LeadsPage: React.FC = () => {
       
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center text-sm text-gray-600">
-          {filteredLeads.length} {filteredLeads.length === 1 ? 'lead' : 'leads'} found
+          {sortedLeads.length} {sortedLeads.length === 1 ? 'lead' : 'leads'} found
         </div>
         
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           {(filterTag || filterStatus) && (
             <button 
-              className="text-blue-500 text-sm mr-2"
+              className="text-blue-500 text-sm"
               onClick={handleClearFilters}
             >
               Clear filters
             </button>
           )}
           
+          {/* Sort dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-1">
+                {sortDirection === "asc" ? <ArrowUpAZ className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />}
+                <span>Sort</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Sort Leads</DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={() => handleSort("name")} className="flex justify-between">
+                  <span>By Name</span>
+                  {sortField === "name" && (
+                    sortDirection === "asc" ? <ArrowUpAZ className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSort("dateAdded")} className="flex justify-between">
+                  <span>By Date Added</span>
+                  {sortField === "dateAdded" && (
+                    sortDirection === "asc" ? <ArrowUpAZ className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {/* Filter dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center gap-1">
@@ -125,8 +186,8 @@ const LeadsPage: React.FC = () => {
       </div>
       
       <div>
-        {filteredLeads.length > 0 ? (
-          filteredLeads.map(lead => (
+        {sortedLeads.length > 0 ? (
+          sortedLeads.map(lead => (
             <LeadCard key={lead.id} lead={lead} />
           ))
         ) : (

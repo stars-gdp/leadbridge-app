@@ -63,6 +63,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
         <div>
           <h3 className="font-semibold text-gray-800">{lead.name}</h3>
           <p className="text-gray-600 text-sm">{lead.phone}</p>
+          <p className="text-xs text-gray-500 mt-1">Added: {formatDate(lead.dateAdded)}</p>
         </div>
         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTagColor(lead.tag)}`}>
           {lead.tag.charAt(0).toUpperCase() + lead.tag.slice(1)}

@@ -13,6 +13,7 @@ export interface Lead {
   tag: LeadTag;
   status: LeadStatus;
   lastContactDate: string;
+  dateAdded: string; // Added dateAdded field
   notes: string;
 }
 
@@ -53,6 +54,7 @@ const sampleLeads: Lead[] = [
     tag: "hot",
     status: "qualified",
     lastContactDate: "2023-09-15",
+    dateAdded: "2023-09-01",
     notes: "Interested in premium package. Follow up next week."
   },
   {
@@ -62,6 +64,7 @@ const sampleLeads: Lead[] = [
     tag: "new",
     status: "contacted",
     lastContactDate: "2023-09-18",
+    dateAdded: "2023-09-10",
     notes: "First contact made. Scheduled intro call for next Monday."
   },
   {
@@ -71,6 +74,7 @@ const sampleLeads: Lead[] = [
     tag: "cold",
     status: "lost",
     lastContactDate: "2023-08-30",
+    dateAdded: "2023-08-15",
     notes: "No response after multiple follow-ups."
   },
   {
@@ -80,6 +84,7 @@ const sampleLeads: Lead[] = [
     tag: "hot",
     status: "negotiation",
     lastContactDate: "2023-09-17",
+    dateAdded: "2023-09-05",
     notes: "Discussing contract details. Needs pricing options."
   },
   {
@@ -89,6 +94,7 @@ const sampleLeads: Lead[] = [
     tag: "new",
     status: "contacted",
     lastContactDate: "2023-09-16",
+    dateAdded: "2023-09-12",
     notes: "Responded positively to initial outreach."
   }
 ];
@@ -152,7 +158,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addLead = (lead: Omit<Lead, "id">) => {
     const newLead = {
       ...lead,
-      id: Date.now().toString()
+      id: Date.now().toString(),
+      dateAdded: new Date().toISOString().split('T')[0] // Set current date as dateAdded
     };
     setLeads([...leads, newLead]);
   };

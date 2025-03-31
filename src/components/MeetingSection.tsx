@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Meeting, MeetingType, MeetingStatus, useAppContext } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,9 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, X, Plus } from "lucide-react";
+import { Calendar as CalendarIcon, X, Plus, Filter } from "lucide-react";
 import { format, isValid, parse } from "date-fns";
+import MeetingFilters from "./MeetingFilters";
 
 interface MeetingSectionProps {
   leadId: string;
@@ -25,8 +27,11 @@ const MeetingSection: React.FC<MeetingSectionProps> = ({ leadId }) => {
   const { getMeetingsByLead, addMeeting, updateMeeting, deleteMeeting } = useAppContext();
   const meetings = getMeetingsByLead(leadId);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [newMeetingType, setNewMeetingType] = useState<MeetingType>("BOM");
   const [newMeetingDate, setNewMeetingDate] = useState<Date | undefined>(undefined);
+  const [typeFilter, setTypeFilter] = useState<MeetingType | "">("");
+  const [statusFilter, setStatusFilter] = useState<MeetingStatus | "">("");
 
   const getMeetingStatusOptions = (type: MeetingType): MeetingStatus[] => {
     switch (type) {
@@ -88,7 +93,20 @@ const MeetingSection: React.FC<MeetingSectionProps> = ({ leadId }) => {
     }
   };
 
-  const sortedMeetings = [...meetings].sort((a, b) => {
+  const clearFilters = () => {
+    setTypeFilter("");
+    setStatusFilter("");
+  };
+
+  // Filter meetings based on selected filters
+  const filteredMeetings = meetings.filter(meeting => {
+    const matchesType = !typeFilter || meeting.type === typeFilter;
+    const matchesStatus = !statusFilter || meeting.status === statusFilter;
+    return matchesType && matchesStatus;
+  });
+
+  // Sort filtered meetings
+  const sortedMeetings = [...filteredMeetings].sort((a, b) => {
     // Sort by meeting type priority
     const typePriority: Record<MeetingType, number> = {
       "BOM": 1,
@@ -104,18 +122,39 @@ const MeetingSection: React.FC<MeetingSectionProps> = ({ leadId }) => {
     <div className="mb-4">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-lg font-semibold text-gray-800">Meetings</h2>
-        {!showAddForm && (
+        <div className="flex gap-2">
           <Button 
             variant="outline" 
             size="sm"
             className="text-xs"
-            onClick={() => setShowAddForm(true)}
+            onClick={() => setShowFilters(!showFilters)}
           >
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            Add Meeting
+            <Filter className="h-3.5 w-3.5 mr-1" />
+            {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
-        )}
+          {!showAddForm && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-xs"
+              onClick={() => setShowAddForm(true)}
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add Meeting
+            </Button>
+          )}
+        </div>
       </div>
+      
+      {showFilters && (
+        <MeetingFilters
+          typeFilter={typeFilter}
+          statusFilter={statusFilter}
+          onTypeFilterChange={setTypeFilter}
+          onStatusFilterChange={setStatusFilter}
+          onClearFilters={clearFilters}
+        />
+      )}
       
       {showAddForm && (
         <div className="bg-gray-50 p-3 rounded-lg mb-3 border border-gray-200">
@@ -271,15 +310,31 @@ const MeetingSection: React.FC<MeetingSectionProps> = ({ leadId }) => {
         </div>
       ) : (
         <div className="text-center py-6 bg-gray-50 rounded-lg">
-          <p className="text-gray-500">No meetings scheduled</p>
-          <Button 
-            size="sm" 
-            className="mt-2 bg-blue-500 hover:bg-blue-600"
-            onClick={() => setShowAddForm(true)}
-          >
-            <CalendarIcon className="h-4 w-4 mr-1" />
-            Schedule Meeting
-          </Button>
+          <p className="text-gray-500">
+            {meetings.length > 0 
+              ? "No meetings match the current filters" 
+              : "No meetings scheduled"}
+          </p>
+          <div className="flex justify-center gap-2 mt-2">
+            {meetings.length > 0 && typeFilter && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={clearFilters}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Clear Filters
+              </Button>
+            )}
+            <Button 
+              size="sm" 
+              className="bg-blue-500 hover:bg-blue-600"
+              onClick={() => setShowAddForm(true)}
+            >
+              <CalendarIcon className="h-4 w-4 mr-1" />
+              Schedule Meeting
+            </Button>
+          </div>
         </div>
       )}
     </div>
